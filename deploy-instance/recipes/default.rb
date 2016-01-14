@@ -12,12 +12,12 @@ end
 
 execute 'SET REDIRECT from 80 to 8000' do
   user 'root'
-  command '-t nat -A PREROUTING -p tcp --dport 80 -j REDIRECT --to-port 8000'
+  command 'iptables -t nat -A PREROUTING -p tcp --dport 80 -j REDIRECT --to-port 8000'
 end
 
 execute 'SET REDIRECT REVERSE from 80 to 8000' do
   user 'root'
-  command '-t nat -I OUTPUT -p tcp -d 127.0.0.1 --dport 80 -j REDIRECT --to-ports 8000'
+  command 'iptables -t nat -I OUTPUT -p tcp -d 127.0.0.1 --dport 80 -j REDIRECT --to-ports 8000'
 end
 
 execute 'Save firewall settings' do
