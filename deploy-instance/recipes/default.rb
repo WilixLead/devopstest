@@ -1,8 +1,8 @@
 #
-# Cookbook Name:: test
+# Cookbook Name:: Deploy Xeepic Server
 # Recipe:: default
 #
-# Copyright 2015, YOUR_COMPANY_NAME
+# Copyright 2015, XEEPIC
 #
 # All rights reserved - Do Not Redistribute
 #
@@ -15,7 +15,7 @@ execute 'SET REDIRECT from 80 to 8000' do
   command '-t nat -A PREROUTING -p tcp --dport 80 -j REDIRECT --to-port 8000'
 end
 
-execute 'SET REDIRECT REWERSE from 80 to 8000' do
+execute 'SET REDIRECT REVERSE from 80 to 8000' do
   user 'root'
   command '-t nat -I OUTPUT -p tcp -d 127.0.0.1 --dport 80 -j REDIRECT --to-ports 8000'
 end
@@ -35,3 +35,8 @@ execute 'Save forwarding' do
   command 'sysctl -w net.ipv4.ip_forward=1'
 end
 
+git '/var/' do
+  repository 'git@github.com:MikiMullorXeePic/Server.git'
+  revision 'master'
+  action :sync
+end
