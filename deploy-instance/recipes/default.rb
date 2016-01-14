@@ -34,9 +34,3 @@ execute 'Save forwarding' do
   user 'root'
   command 'sysctl -w net.ipv4.ip_forward=1'
 end
-
-git '/var/' do
-  repository 'git@github.com:MikiMullorXeePic/Server.git'
-  revision 'master'
-  action :sync
-end
