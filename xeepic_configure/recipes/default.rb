@@ -5,32 +5,68 @@
 # Copyright 2015, XEEPIC
 #
 # All rights reserved - Do Not Redistribute
-#
-package 'apache2' do
-  action :remove
-end
 
-execute 'SET REDIRECT from 80 to 8000' do
-  user 'root'
-  command 'iptables -t nat -A PREROUTING -p tcp --dport 80 -j REDIRECT --to-port 8000'
-end
+define :opsworks_deploy do
+  application = params[:app]
+  deploy = params[:deploy_data]
 
-execute 'SET REDIRECT REVERSE from 80 to 8000' do
-  user 'root'
-  command 'iptables -t nat -I OUTPUT -p tcp -d 127.0.0.1 --dport 80 -j REDIRECT --to-ports 8000'
-end
+  directory "#{deploy[:deploy_to]}" do
+    group deploy[:group]
+    owner deploy[:user]
+    mode "0775"
+    action :create
+    recursive true
+  end
 
-execute 'Save firewall settings' do
-  user 'root'
-  command 'iptables-save'
-end
+  if deploy[:scm]
+    ensure_scm_package_installed(deploy[:scm][:scm_type])
 
-execute 'Enable forwarding' do
-  user 'root'
-  command 'echo 1 > /proc/sys/net/ipv4/ip_forward'
-end
+    prepare_git_checkouts(
+        :user => deploy[:user],
+        :group => deploy[:group],
+        :home => deploy[:home],
+        :ssh_key => deploy[:scm][:ssh_key]
+    ) if deploy[:scm][:scm_type].to_s == 'git'
+  end
 
-execute 'Save forwarding' do
-  user 'root'
-  command 'sysctl -w net.ipv4.ip_forward=1'
+  deploy = node[:deploy][application]
+
+  ruby_block "change HOME to #{deploy[:home]} for source checkout" do
+    block do
+      ENV['HOME'] = "#{deploy[:home]}"
+    end
+  end
+
+  # setup deployment & checkout
+  if deploy[:scm] && deploy[:scm][:scm_type] != 'other'
+    Chef::Log.debug("Checking out source code of application #{application} with type #{deploy[:application_type]}")
+    deploy deploy[:deploy_to] do
+      provider Chef::Provider::Deploy.const_get(deploy[:chef_provider])
+      keep_releases deploy[:keep_releases]
+      repository deploy[:scm][:repository]
+      user deploy[:user]
+      group deploy[:group]
+      revision deploy[:scm][:revision]
+      migrate deploy[:migrate]
+      migration_command deploy[:migrate_command]
+      environment deploy[:environment].to_hash
+      purge_before_symlink(deploy[:purge_before_symlink]) unless deploy[:purge_before_symlink].nil?
+      create_dirs_before_symlink(deploy[:create_dirs_before_symlink])
+      symlink_before_migrate(deploy[:symlink_before_migrate])
+      symlinks(deploy[:symlinks]) unless deploy[:symlinks].nil?
+      action deploy[:action]
+
+      scm_provider :git
+      enable_submodules deploy[:enable_submodules]
+      shallow_clone deploy[:shallow_clone]
+
+      before_migrate do
+        link_tempfiles_to_current_release
+        
+        if deploy[:auto_npm_install_on_deploy]
+          OpsWorks::NodejsConfiguration.npm_install(application, node[:deploy][application], release_path, node[:opsworks_nodejs][:npm_install_options])
+        end
+      end
+    end
+  end
 end
