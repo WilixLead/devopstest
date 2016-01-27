@@ -6,6 +6,11 @@
 #
 # All rights reserved - Do Not Redistribute
 
+puts "TEST OUTPUT!!!!!!!!!!"
+puts params
+puts node["opsworks"]["applications"]
+
+=begin
 application = params[:app]
 deploy = params[:deploy_data]
 
@@ -68,3 +73,4 @@ if deploy[:scm] && deploy[:scm][:scm_type] != 'other'
 	  end
 	end
 end
+=end
