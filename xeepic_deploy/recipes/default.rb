@@ -6,9 +6,24 @@
 #
 # All rights reserved - Do Not Redistribute
 
-puts "TEST OUTPUT!!!!!!!!!!"
+include_recipe 'deploy'
+
+puts "------------------------------TEST OUTPUT!!!!!!!!!!------------------------"
+puts "-"
+puts "-"
+
+puts "node:deploy::"
+puts node[:deploy]
+
+puts "params::"
 puts params
-puts node["opsworks"]["applications"]
+
+puts "opsworks::"
+puts node["opsworks"]
+
+puts "-"
+puts "-"
+puts "--------------------------- END END END TEST OUTPUT!!!!!!!!!! ---------------"
 
 =begin
 application = params[:app]
