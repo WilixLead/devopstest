@@ -93,14 +93,14 @@ node[:deploy].each do |application, deploy|
         before_restart do
           execute "Stop Xeepic Service" do
             user "root"
-            command "cd #{current_path} && forever stop xeepic_prod"
+            command "cd #{release_path} && forever stop xeepic_prod"
           end
         end
         
         after_restart do
           execute "Start Xeepic Service" do
             user "root"
-            command "cd #{current_path} && forever start xeepic_prod"
+            command "cd #{release_path} && forever start xeepic_prod"
           end
         end
         
