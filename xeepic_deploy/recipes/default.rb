@@ -25,6 +25,10 @@ puts "-"
 puts "-"
 puts "--------------------------- END END END TEST OUTPUT!!!!!!!!!! ---------------"
 
+package 'nodejs-legacy' do
+  action :install
+end
+
 node[:deploy].each do |application, deploy|
   if application == 'xeepic_server' || node[:deploy].count == 1
     directory "#{deploy[:deploy_to]}" do
