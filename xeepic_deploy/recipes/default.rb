@@ -89,13 +89,22 @@ node[:deploy].each do |application, deploy|
             end
           end
         end
+        
+        before_restart do
+          execute "Stop Xeepic Service" do
+            user "root"
+            command "cd #{current_path} && forever stop xeepic_prod"
+          end
+        end
+        
+        after_restart do
+          execute "Start Xeepic Service" do
+            user "root"
+            command "cd #{current_path} && forever start xeepic_prod"
+          end
+        end
+        
       end
-      
-      execute "Start Xeepic Forever Server" do
-        user "root"
-        command "cd #{current_path} && npm run setup"
-      end
-      
     end
   end
 end
