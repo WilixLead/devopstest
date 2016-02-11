@@ -95,6 +95,11 @@ node[:deploy].each do |application, deploy|
         end
         
         after_restart do
+          execute "Stop old Xeepic service" do
+            user "root"
+            command "cd #{release_path} && forever stopall"
+          end
+          
           execute "Start Xeepic Service" do
             user "root"
             command "cd #{release_path} && NODE_ENV=testing forever start app.js"
