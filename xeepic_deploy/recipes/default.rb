@@ -87,7 +87,7 @@ node[:deploy].each do |application, deploy|
           if deploy[:auto_npm_install_on_deploy]
             OpsWorks::NodejsConfiguration.npm_install(application, node[:deploy][application], release_path, node[:opsworks_nodejs][:npm_install_options])
             
-            execute "Setup Xeepic Server" do
+            execute "Setup Xeepic PRODUCTION Server" do
               user "root"
               command "cd #{release_path} && npm run setup"
             end
@@ -95,9 +95,14 @@ node[:deploy].each do |application, deploy|
         end
         
         after_restart do
+          execute "Stop old Xeepic service" do
+            user "root"
+            command "cd #{release_path} && forever stopall"
+          end
+          
           execute "Start Xeepic Service" do
             user "root"
-            command "service xeepic_prod restart"
+            command "cd #{release_path} && NODE_ENV=production forever start app.js"
           end
         end
         
